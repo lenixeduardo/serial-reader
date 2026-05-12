@@ -1,22 +1,22 @@
 import React, { useEffect, useState } from "react";
-import type { Recipe } from "../../shared/types";
+import type { Formula } from "../../shared/types";
 import { Modal } from "../components/Modal";
 
 type EditState =
   | { mode: "create" }
-  | { mode: "edit"; recipe: Recipe }
+  | { mode: "edit"; formula: Formula }
   | null;
 
-export function Recipes() {
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
+export function Formulas() {
+  const [formulas, setFormulas] = useState<Formula[]>([]);
   const [loading, setLoading] = useState(true);
   const [edit, setEdit] = useState<EditState>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function reload() {
     setLoading(true);
-    const list = await window.api.recipes.list();
-    setRecipes(list);
+    const list = await window.api.formulas.list();
+    setFormulas(list);
     setLoading(false);
   }
 
@@ -24,9 +24,9 @@ export function Recipes() {
     reload();
   }, []);
 
-  async function handleDelete(r: Recipe) {
-    if (!confirm(`Excluir a receita "${r.name}"?`)) return;
-    const res = await window.api.recipes.remove(r.id);
+  async function handleDelete(f: Formula) {
+    if (!confirm(`Excluir a fórmula "${f.name}"?`)) return;
+    const res = await window.api.formulas.remove(f.id);
     if (!res.ok) {
       setError(res.error);
       return;
@@ -39,7 +39,7 @@ export function Recipes() {
     <>
       <div className="page-actions">
         {error && <div className="alert">{error}</div>}
-        <button onClick={() => setEdit({ mode: "create" })}>+ Nova Receita</button>
+        <button onClick={() => setEdit({ mode: "create" })}>+ Nova Fórmula</button>
       </div>
 
       <div className="card">
@@ -56,17 +56,17 @@ export function Recipes() {
             {loading && (
               <tr><td colSpan={4} className="muted">Carregando...</td></tr>
             )}
-            {!loading && recipes.length === 0 && (
-              <tr><td colSpan={4} className="muted">Nenhuma receita cadastrada.</td></tr>
+            {!loading && formulas.length === 0 && (
+              <tr><td colSpan={4} className="muted">Nenhuma fórmula cadastrada.</td></tr>
             )}
-            {recipes.map((r) => (
-              <tr key={r.id}>
-                <td><strong>{r.name}</strong></td>
-                <td className="muted">{r.description ?? "—"}</td>
-                <td className="muted">{formatDate(r.createdAt)}</td>
+            {formulas.map((f) => (
+              <tr key={f.id}>
+                <td><strong>{f.name}</strong></td>
+                <td className="muted">{f.description ?? "—"}</td>
+                <td className="muted">{formatDate(f.createdAt)}</td>
                 <td>
-                  <button className="link" onClick={() => setEdit({ mode: "edit", recipe: r })}>Editar</button>
-                  <button className="link danger" onClick={() => handleDelete(r)}>Excluir</button>
+                  <button className="link" onClick={() => setEdit({ mode: "edit", formula: f })}>Editar</button>
+                  <button className="link danger" onClick={() => handleDelete(f)}>Excluir</button>
                 </td>
               </tr>
             ))}
@@ -75,8 +75,8 @@ export function Recipes() {
       </div>
 
       {edit && (
-        <RecipeFormModal
-          initial={edit.mode === "edit" ? edit.recipe : null}
+        <FormulaFormModal
+          initial={edit.mode === "edit" ? edit.formula : null}
           onClose={() => setEdit(null)}
           onSaved={() => {
             setEdit(null);
@@ -90,12 +90,12 @@ export function Recipes() {
 }
 
 interface FormProps {
-  initial: Recipe | null;
+  initial: Formula | null;
   onClose: () => void;
   onSaved: () => void;
 }
 
-function RecipeFormModal({ initial, onClose, onSaved }: FormProps) {
+function FormulaFormModal({ initial, onClose, onSaved }: FormProps) {
   const [name, setName] = useState(initial?.name ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [error, setError] = useState<string | null>(null);
@@ -107,8 +107,8 @@ function RecipeFormModal({ initial, onClose, onSaved }: FormProps) {
     setError(null);
     const input = { name, description };
     const res = initial
-      ? await window.api.recipes.update(initial.id, input)
-      : await window.api.recipes.create(input);
+      ? await window.api.formulas.update(initial.id, input)
+      : await window.api.formulas.create(input);
     setSaving(false);
     if (!res.ok) {
       setError(res.error);
@@ -119,7 +119,7 @@ function RecipeFormModal({ initial, onClose, onSaved }: FormProps) {
 
   return (
     <Modal
-      title={initial ? "Editar Receita" : "Nova Receita"}
+      title={initial ? "Editar Fórmula" : "Nova Fórmula"}
       onClose={onClose}
       footer={
         <>

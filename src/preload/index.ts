@@ -2,14 +2,14 @@ import { contextBridge, ipcRenderer } from "electron";
 import {
   IPC,
   type BatchInput,
-  type BatchWithRecipe,
+  type BatchWithFormula,
+  type FormulaInput,
   type LoginRequest,
   type LoginResult,
-  type RecipeInput,
   type SerialReaderApi,
   type ServiceResult
 } from "../shared/ipc";
-import type { Recipe, User } from "../shared/types";
+import type { Formula, User } from "../shared/types";
 
 const api: SerialReaderApi = {
   auth: {
@@ -17,18 +17,18 @@ const api: SerialReaderApi = {
     logout: (): Promise<void> => ipcRenderer.invoke(IPC.authLogout),
     currentUser: (): Promise<User | null> => ipcRenderer.invoke(IPC.authCurrentUser)
   },
-  recipes: {
-    list: (): Promise<Recipe[]> => ipcRenderer.invoke(IPC.recipesList),
-    create: (input: RecipeInput): Promise<ServiceResult<Recipe>> =>
-      ipcRenderer.invoke(IPC.recipesCreate, input),
-    update: (id: number, input: RecipeInput): Promise<ServiceResult<Recipe>> =>
-      ipcRenderer.invoke(IPC.recipesUpdate, id, input),
+  formulas: {
+    list: (): Promise<Formula[]> => ipcRenderer.invoke(IPC.formulasList),
+    create: (input: FormulaInput): Promise<ServiceResult<Formula>> =>
+      ipcRenderer.invoke(IPC.formulasCreate, input),
+    update: (id: number, input: FormulaInput): Promise<ServiceResult<Formula>> =>
+      ipcRenderer.invoke(IPC.formulasUpdate, id, input),
     remove: (id: number): Promise<ServiceResult<true>> =>
-      ipcRenderer.invoke(IPC.recipesDelete, id)
+      ipcRenderer.invoke(IPC.formulasDelete, id)
   },
   batches: {
-    listOpen: (): Promise<BatchWithRecipe[]> => ipcRenderer.invoke(IPC.batchesListOpen),
-    create: (input: BatchInput): Promise<ServiceResult<BatchWithRecipe>> =>
+    listOpen: (): Promise<BatchWithFormula[]> => ipcRenderer.invoke(IPC.batchesListOpen),
+    create: (input: BatchInput): Promise<ServiceResult<BatchWithFormula>> =>
       ipcRenderer.invoke(IPC.batchesCreate, input),
     close: (id: number): Promise<ServiceResult<true>> =>
       ipcRenderer.invoke(IPC.batchesClose, id)

@@ -3,12 +3,12 @@ import "./styles.css";
 import { Login } from "./screens/Login";
 import { Sidebar, type Route } from "./components/Sidebar";
 import { Dashboard } from "./screens/Dashboard";
-import { Recipes } from "./screens/Recipes";
+import { Formulas } from "./screens/Formulas";
 import type { User } from "../shared/types";
 
 const TITLES: Record<Route, string> = {
   dashboard: "Lotes Abertos",
-  recipes: "Receitas",
+  formulas: "Fórmulas",
   history: "Histórico",
   settings: "Configurações"
 };
@@ -43,7 +43,7 @@ export function App() {
         </div>
         <div className="content">
           {route === "dashboard" && <Dashboard />}
-          {route === "recipes" && <Recipes />}
+          {route === "formulas" && <Formulas />}
           {(route === "history" || route === "settings") && (
             <div className="placeholder">
               Tela <strong>{TITLES[route]}</strong> — implementação nas próximas fases.

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import type { Recipe } from "../../shared/types";
-import type { BatchWithRecipe } from "../../shared/ipc";
+import type { Formula } from "../../shared/types";
+import type { BatchWithFormula } from "../../shared/ipc";
 import { Modal } from "../components/Modal";
 
 export function Dashboard() {
-  const [batches, setBatches] = useState<BatchWithRecipe[]>([]);
+  const [batches, setBatches] = useState<BatchWithFormula[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewBatch, setShowNewBatch] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +20,7 @@ export function Dashboard() {
     reload();
   }, []);
 
-  async function handleClose(b: BatchWithRecipe) {
+  async function handleClose(b: BatchWithFormula) {
     if (!confirm(`Finalizar o lote ${b.code}?`)) return;
     const res = await window.api.batches.close(b.id);
     if (!res.ok) {
@@ -66,13 +66,13 @@ export function Dashboard() {
   );
 }
 
-function BatchCard({ batch, onClose }: { batch: BatchWithRecipe; onClose: () => void }) {
+function BatchCard({ batch, onClose }: { batch: BatchWithFormula; onClose: () => void }) {
   return (
     <div className="batch-card">
       <div className="batch-card-head">
         <div>
           <div className="batch-code">Lote #{batch.code}</div>
-          <div className="batch-recipe">{batch.recipeName}</div>
+          <div className="batch-recipe">{batch.formulaName}</div>
         </div>
         <span className="chip chip-green">ABERTO</span>
       </div>
@@ -97,26 +97,26 @@ interface NewBatchProps {
 }
 
 function NewBatchModal({ onClose, onCreated }: NewBatchProps) {
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [recipeId, setRecipeId] = useState<number | "">("");
+  const [formulas, setFormulas] = useState<Formula[]>([]);
+  const [formulaId, setFormulaId] = useState<number | "">("");
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    window.api.recipes.list().then(setRecipes);
+    window.api.formulas.list().then(setFormulas);
   }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!recipeId) {
-      setError("Selecione uma receita.");
+    if (!formulaId) {
+      setError("Selecione uma fórmula.");
       return;
     }
     setSaving(true);
     setError(null);
     const res = await window.api.batches.create({
-      recipeId: Number(recipeId),
+      formulaId: Number(formulaId),
       code: code.trim() || undefined
     });
     setSaving(false);
@@ -142,14 +142,17 @@ function NewBatchModal({ onClose, onCreated }: NewBatchProps) {
     >
       <form onSubmit={submit}>
         <div className="field">
-          <label>Receita</label>
-          {recipes.length === 0 ? (
-            <div className="muted">Cadastre uma receita antes.</div>
+          <label>Fórmula</label>
+          {formulas.length === 0 ? (
+            <div className="muted">Cadastre uma fórmula antes de criar um lote.</div>
           ) : (
-            <select value={recipeId} onChange={(e) => setRecipeId(e.target.value ? Number(e.target.value) : "")}>
+            <select
+              value={formulaId}
+              onChange={(e) => setFormulaId(e.target.value ? Number(e.target.value) : "")}
+            >
               <option value="">Selecione...</option>
-              {recipes.map((r) => (
-                <option key={r.id} value={r.id}>{r.name}</option>
+              {formulas.map((f) => (
+                <option key={f.id} value={f.id}>{f.name}</option>
               ))}
             </select>
           )}

@@ -16,7 +16,7 @@
 ## Fase 1 — Banco SQLite + Login ✅
 - [x] Criar `src/main/db/connection.ts` (better-sqlite3, path em `app.getPath('userData')`)
 - [x] Sistema de migrations em `src/main/db/migrations.ts` (inline TS p/ sobreviver ao bundle)
-- [x] Schema: `users`, `recipes`, `batches`, `equipments`, `capture_sessions`, `readings`, `settings`
+- [x] Schema: `users`, `formulas`, `batches`, `equipments`, `capture_sessions`, `readings`, `settings`
 - [x] Seed: usuário `admin/admin` + 6 equipamentos placeholder + `capture_timeout_seconds=30`
 - [x] IPC handlers: `auth:login`, `auth:logout`, `auth:current-user`
 - [x] Hash de senha com `bcryptjs` (puro JS, sem build nativo)
@@ -25,15 +25,15 @@
 - [x] Layout base com sidebar (após login) e roteamento simples
 - [x] Commit + push
 
-## Fase 2 — CRUD Receitas + Lotes + Dashboard ✅
-- [x] IPC `recipes:list|create|update|delete` (`src/main/ipc/recipes-handlers.ts`)
-- [x] Repository receitas (`src/main/db/recipes-repo.ts`)
-- [x] Tela "Receitas" (tabela + modal de criação/edição) + exclusão com confirmação
+## Fase 2 — CRUD Fórmulas + Lotes + Dashboard ✅
+- [x] IPC `formulas:list|create|update|delete` (`src/main/ipc/formulas-handlers.ts`)
+- [x] Repository fórmulas (`src/main/db/formulas-repo.ts`)
+- [x] Tela "Fórmulas" (tabela + modal de criação/edição) + exclusão com confirmação
 - [x] IPC `batches:list-open|create|close` (`src/main/ipc/batches-handlers.ts`)
-- [x] Repository lotes com join de receita/operador/contagem de leituras
+- [x] Repository lotes com join de fórmula/operador/contagem de leituras
 - [x] Geração automática de código do lote (`YYYY-NNNN`)
 - [x] Dashboard com grid 3×2 dos lotes abertos
-- [x] Modal "Novo Lote" (seleciona receita, código opcional)
+- [x] Modal "Novo Lote" (seleciona fórmula, código opcional)
 - [x] Botão "Finalizar Lote" com confirmação
 - [x] Limite de 6 lotes abertos (bloqueio com mensagem clara)
 - [x] Botão "Iniciar Leitura" placeholder (Fase 4)

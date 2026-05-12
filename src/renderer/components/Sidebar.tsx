@@ -1,7 +1,7 @@
 import React from "react";
 import type { User } from "../../shared/types";
 
-export type Route = "dashboard" | "recipes" | "history" | "settings";
+export type Route = "dashboard" | "formulas" | "history" | "settings";
 
 interface Props {
   user: User;
@@ -12,7 +12,7 @@ interface Props {
 
 const NAV: Array<{ key: Route; label: string }> = [
   { key: "dashboard", label: "Dashboard" },
-  { key: "recipes", label: "Receitas" },
+  { key: "formulas", label: "Fórmulas" },
   { key: "history", label: "Histórico" },
   { key: "settings", label: "Configurações" }
 ];

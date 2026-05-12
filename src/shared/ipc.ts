@@ -1,13 +1,13 @@
-import type { Batch, Recipe, User } from "./types";
+import type { Batch, Formula, User } from "./types";
 
 export const IPC = {
   authLogin: "auth:login",
   authLogout: "auth:logout",
   authCurrentUser: "auth:current-user",
-  recipesList: "recipes:list",
-  recipesCreate: "recipes:create",
-  recipesUpdate: "recipes:update",
-  recipesDelete: "recipes:delete",
+  formulasList: "formulas:list",
+  formulasCreate: "formulas:create",
+  formulasUpdate: "formulas:update",
+  formulasDelete: "formulas:delete",
   batchesListOpen: "batches:list-open",
   batchesCreate: "batches:create",
   batchesClose: "batches:close"
@@ -22,18 +22,18 @@ export type LoginResult =
   | { ok: true; user: User }
   | { ok: false; error: string };
 
-export interface RecipeInput {
+export interface FormulaInput {
   name: string;
   description?: string;
 }
 
 export interface BatchInput {
-  recipeId: number;
+  formulaId: number;
   code?: string;
 }
 
-export interface BatchWithRecipe extends Batch {
-  recipeName: string;
+export interface BatchWithFormula extends Batch {
+  formulaName: string;
   operatorName: string;
   readingsCount: number;
 }
@@ -46,15 +46,15 @@ export interface SerialReaderApi {
     logout(): Promise<void>;
     currentUser(): Promise<User | null>;
   };
-  recipes: {
-    list(): Promise<Recipe[]>;
-    create(input: RecipeInput): Promise<ServiceResult<Recipe>>;
-    update(id: number, input: RecipeInput): Promise<ServiceResult<Recipe>>;
+  formulas: {
+    list(): Promise<Formula[]>;
+    create(input: FormulaInput): Promise<ServiceResult<Formula>>;
+    update(id: number, input: FormulaInput): Promise<ServiceResult<Formula>>;
     remove(id: number): Promise<ServiceResult<true>>;
   };
   batches: {
-    listOpen(): Promise<BatchWithRecipe[]>;
-    create(input: BatchInput): Promise<ServiceResult<BatchWithRecipe>>;
+    listOpen(): Promise<BatchWithFormula[]>;
+    create(input: BatchInput): Promise<ServiceResult<BatchWithFormula>>;
     close(id: number): Promise<ServiceResult<true>>;
   };
 }

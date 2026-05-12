@@ -10,7 +10,7 @@ Aplicativo **desktop (Windows)** para um laboratório industrial. Captura leitur
 
 ### Fluxo do operador
 1. Login no sistema.
-2. Tela principal: até **5–6 lotes abertos** simultaneamente, com botões para **Criar Receita** e **Criar Lote**.
+2. Tela principal: até **5–6 lotes abertos** simultaneamente, com botões para **Criar Fórmula** e **Criar Lote**.
 3. Cada lote tem o botão **"Iniciar Leitura"**. Ao clicar:
    - O sistema **abre/arma as 6 portas seriais** (5 equipamentos + 1 reserva para fallback se uma porta falhar).
    - Janela de captura por **N segundos** (default 30s, **configurável** nas Settings).
@@ -49,8 +49,8 @@ Aplicativo **desktop (Windows)** para um laboratório industrial. Captura leitur
 users(id, username, password_hash, created_at)
 equipments(id, name, port_path, baud_rate, data_bits,
            stop_bits, parity, enabled, slot_index, parse_regex)
-recipes(id, name, description, created_by, created_at)
-batches(id, recipe_id, code, status['open'|'closed'],
+formulas(id, name, description, created_by, created_at)
+batches(id, formula_id, code, status['open'|'closed'],
         opened_at, closed_at, created_by)
 capture_sessions(id, batch_id, started_at, ended_at,
                  timeout_seconds, status['active'|'completed'|'cancelled'])
@@ -60,6 +60,8 @@ settings(key, value)   -- ex.: 'capture_timeout_seconds'='30'
 ```
 
 Tipos TS espelhados em `src/shared/types.ts`.
+
+> **Nomenclatura:** o termo "Receita" foi substituído por **"Fórmula"** em todo o sistema (tabela, IPC, UI) para alinhamento com o vocabulário industrial correto.
 
 ## 4. Estrutura de pastas
 
@@ -74,9 +76,9 @@ src/
 ## 5. Telas planejadas
 
 1. **Login** — usuário/senha, card centralizado.
-2. **Dashboard de Lotes** — grid 3×2 com até 6 lotes abertos; botões topo: Nova Receita, Novo Lote.
+2. **Dashboard de Lotes** — grid 3×2 com até 6 lotes abertos; botões topo: Nova Fórmula, Novo Lote.
 3. **Modal de Captura Ativa** — countdown circular + grid 2×3 de slots de equipamento com LEDs de status (cinza/verde/amarelo/vermelho).
-4. **Receitas** — CRUD em tabela.
+4. **Fórmulas** — CRUD em tabela.
 5. **Novo Lote** — modal com seleção de receita.
 6. **Configurações** — abas Captura (timeout), Equipamentos (6 slots, COM, baud, regex), Usuários.
 7. **Histórico do Lote** — timeline agrupada por `capture_session`, exporta CSV.

@@ -73,5 +73,12 @@ CREATE TABLE IF NOT EXISTS settings (
   value TEXT NOT NULL
 );
 `
+  },
+  {
+    name: "002_rename_recipes_to_formulas",
+    sql: `
+ALTER TABLE recipes RENAME TO formulas;
+ALTER TABLE batches RENAME COLUMN recipe_id TO formula_id;
+`
   }
 ];

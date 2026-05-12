@@ -5,7 +5,7 @@ import { runMigrations } from "./db/migrate";
 import { seedInitialData } from "./db/seed";
 import { registerAuthHandlers } from "./ipc/auth-handlers";
 import { registerBatchesHandlers } from "./ipc/batches-handlers";
-import { registerRecipesHandlers } from "./ipc/recipes-handlers";
+import { registerFormulasHandlers } from "./ipc/formulas-handlers";
 
 const isDev = !app.isPackaged;
 
@@ -26,14 +26,14 @@ function createWindow() {
     win.webContents.openDevTools({ mode: "detach" });
   } else {
     win.loadFile(join(__dirname, "../renderer/index.html"));
-  }
+  };
 }
 
 app.whenReady().then(() => {
   runMigrations();
   seedInitialData();
   registerAuthHandlers();
-  registerRecipesHandlers();
+  registerFormulasHandlers();
   registerBatchesHandlers();
   createWindow();
 });

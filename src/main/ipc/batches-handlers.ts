@@ -1,5 +1,5 @@
 import { ipcMain } from "electron";
-import { IPC, type BatchInput, type BatchWithRecipe, type ServiceResult } from "../../shared/ipc";
+import { IPC, type BatchInput, type BatchWithFormula, type ServiceResult } from "../../shared/ipc";
 import { getCurrentUser } from "../auth/auth-service";
 import {
   closeBatch,
@@ -7,21 +7,21 @@ import {
   countOpenBatches,
   createBatch,
   generateBatchCode,
-  getBatchWithRecipe,
+  getBatchWithFormula,
   listOpenBatches
 } from "../db/batches-repo";
-import { getRecipe } from "../db/recipes-repo";
+import { getFormula } from "../db/formulas-repo";
 
 const OPEN_BATCHES_SOFT_LIMIT = 6;
 
 export function registerBatchesHandlers(): void {
-  ipcMain.handle(IPC.batchesListOpen, (): BatchWithRecipe[] => listOpenBatches());
+  ipcMain.handle(IPC.batchesListOpen, (): BatchWithFormula[] => listOpenBatches());
 
-  ipcMain.handle(IPC.batchesCreate, (_e, input: BatchInput): ServiceResult<BatchWithRecipe> => {
+  ipcMain.handle(IPC.batchesCreate, (_e, input: BatchInput): ServiceResult<BatchWithFormula> => {
     const user = getCurrentUser();
     if (!user) return { ok: false, error: "Sessão expirada." };
-    if (!input?.recipeId || !getRecipe(input.recipeId)) {
-      return { ok: false, error: "Receita inválida." };
+    if (!input?.formulaId || !getFormula(input.formulaId)) {
+      return { ok: false, error: "Fórmula inválida." };
     }
     if (countOpenBatches() >= OPEN_BATCHES_SOFT_LIMIT) {
       return {
@@ -34,7 +34,7 @@ export function registerBatchesHandlers(): void {
     if (codeExists(code)) return { ok: false, error: "Já existe um lote com esse código." };
 
     try {
-      const batch = createBatch(input.recipeId, code, user.id);
+      const batch = createBatch(input.formulaId, code, user.id);
       return { ok: true, data: batch };
     } catch {
       return { ok: false, error: "Erro ao criar lote." };
@@ -43,7 +43,7 @@ export function registerBatchesHandlers(): void {
 
   ipcMain.handle(IPC.batchesClose, (_e, id: number): ServiceResult<true> => {
     if (!getCurrentUser()) return { ok: false, error: "Sessão expirada." };
-    const batch = getBatchWithRecipe(id);
+    const batch = getBatchWithFormula(id);
     if (!batch) return { ok: false, error: "Lote não encontrado." };
     if (batch.status === "closed") return { ok: false, error: "Lote já está fechado." };
     closeBatch(id);
