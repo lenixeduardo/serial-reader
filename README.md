@@ -106,13 +106,21 @@ node dist/tools/serial-sim.js --port COM11 --preset ph --interval 2000
 
 ### Presets disponíveis
 
-| Preset | Formato de saída | Regex sugerida |
-|---|---|---|
-| `balanca` | `  1.2345 kg` | `(\d+\.\d+)\s*kg` |
-| `ph` | `pH  7.23` | `pH\s*(\d+\.\d+)` |
-| `viscosimetro` | `125.3 mPa.s` | `(\d+\.\d+)\s*mPa` |
-| `espectrofotometro` | `ABS:0.523` | `ABS[:\s]*(\d+\.\d+)` |
-| `generico` | `1234.5678` | `(\d+\.\d+)` |
+Os presets reproduzem o formato real de saída serial de cada marca/modelo conforme
+seus protocolos RS-232 documentados.
+
+| Preset | Referência | Formato de saída | Regex sugerida |
+|---|---|---|---|
+| `balanca` | Mettler Toledo MT-SICS | `S S     0.1234 g` | `(\d+\.\d+)\s*g\b` |
+| `ph` | Mettler/Hanna compact | `pH  7.23` | `pH\s*(\d+\.\d+)` |
+| `viscosimetro` | Brookfield DV-II+ (simplificado) | `125.3 cP` | `(\d+\.\d+)\s*cP` |
+| `viscosimetro-brookfield` | Brookfield DV-II+ (linha completa) | `RPM=  6.0 M=RV S=04 %=45.2 cP=  226.0 D/CM2=  7.05 1/SEC= 10.200 T=23.6C` | `cP=\s*(\d+\.\d+)` |
+| `espectrofotometro` | Cecil CE / Thermo Spectronic | `Abs=0.523` | `[Aa]bs[=:]\s*(\d+\.\d+)` |
+| `generico` | — | `1234.5678` | `(\d+\.\d+)` |
+
+> **Nota sobre unidades:** Balanças analíticas de laboratório (Mettler Toledo, Sartorius, Ohaus)
+> transmitem em **gramas (`g`)**, nunca em kg. O viscosímetro Brookfield usa **`cP`** (centipoise)
+> no modo CGS, padrão de fábrica — numericamente igual a `mPa·s`.
 
 Configure a regex sugerida no campo **"Regex de parsing"** do equipamento em
 **Configurações → Equipamentos**.

@@ -42,24 +42,49 @@ function rand(min: number, max: number, decimals: number): number {
 
 const PRESETS: Record<string, Preset> = {
   balanca: {
-    description: "Balança analítica",
-    exampleRegex: "(\\d+\\.\\d+)\\s*kg",
-    generate: () => `  ${rand(0.001, 50, 4).toFixed(4)} kg\r\n`
+    description: "Balança analítica Mettler Toledo MT-SICS",
+    exampleRegex: "(\\d+\\.\\d+)\\s*g\\b",
+    generate() {
+      const stability = Math.random() > 0.1 ? "S" : "D";
+      const value = rand(0.0001, 220, 4).toFixed(4).padStart(9);
+      return `S ${stability}    ${value} g  \r\n`;
+    }
   },
   ph: {
-    description: "pH-metro",
+    description: "pH-metro Mettler/Hanna (compact mode)",
     exampleRegex: "pH\\s*(\\d+\\.\\d+)",
     generate: () => `pH  ${rand(0, 14, 2).toFixed(2)}\r\n`
   },
   viscosimetro: {
-    description: "Viscosímetro",
-    exampleRegex: "(\\d+\\.\\d+)\\s*mPa",
-    generate: () => `${rand(1, 5000, 1).toFixed(1)} mPa.s\r\n`
+    description: "Viscosímetro Brookfield (simplificado)",
+    exampleRegex: "(\\d+\\.\\d+)\\s*cP",
+    generate: () => `${rand(1, 50000, 1).toFixed(1)} cP\r\n`
+  },
+  "viscosimetro-brookfield": {
+    description: "Viscosímetro Brookfield DV-II+ (linha completa)",
+    exampleRegex: "cP=\\s*(\\d+\\.\\d+)",
+    generate() {
+      const rpm = rand(0.3, 100, 1);
+      const models = ["LV", "RV", "HA", "HB"] as const;
+      const model = models[Math.floor(Math.random() * models.length)];
+      const sp = String(Math.floor(Math.random() * 7) + 1).padStart(2, "0");
+      const torque = rand(5, 99, 1);
+      const cp = rand(10, 50000, 1);
+      const shearRate = parseFloat((rpm * 1.7).toFixed(3));
+      const shearStress = parseFloat((cp * shearRate / 10000).toFixed(2));
+      const temp = rand(20, 35, 1);
+      return (
+        `RPM=${rpm.toFixed(1).padStart(5)} M=${model} S=${sp}` +
+        ` %=${torque.toFixed(1).padStart(5)} cP=${cp.toFixed(1).padStart(8)}` +
+        ` D/CM2=${shearStress.toFixed(2).padStart(7)} 1/SEC=${shearRate.toFixed(3).padStart(7)}` +
+        ` T=${temp.toFixed(1)}C\r\n`
+      );
+    }
   },
   espectrofotometro: {
-    description: "Espectrofotômetro",
-    exampleRegex: "ABS[:\\s]*(\\d+\\.\\d+)",
-    generate: () => `ABS:${rand(0, 3, 3).toFixed(3)}\r\n`
+    description: "Espectrofotômetro Cecil/Thermo",
+    exampleRegex: "[Aa]bs[=:]\\s*(\\d+\\.\\d+)",
+    generate: () => `Abs=${rand(0, 2, 3).toFixed(3)}\r\n`
   },
   generico: {
     description: "Genérico",
@@ -332,7 +357,8 @@ async function testFullPipeline(): Promise<TestResult> {
   }
 
   const total = (db.prepare("SELECT COUNT(*) as n FROM readings").get() as { n: number }).n;
-  result.details.push(note(`DB: ${total} leituras gravadas em ${Object.keys(PRESETS).length} presets`));
+  const presetCount = Object.keys(PRESETS).length;
+  result.details.push(note(`DB: ${total} leituras gravadas em ${presetCount} presets (${total / READINGS} por preset)`));
 
   db.close();
   fs.unlinkSync(dbPath);

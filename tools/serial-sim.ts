@@ -32,35 +32,68 @@ function rand(min: number, max: number, decimals: number): number {
 // ─── Presets de equipamentos ──────────────────────────────────────────────────
 
 const PRESETS: Record<string, Preset> = {
+  // Mettler Toledo MT-SICS: "S S" = stable, "S D" = dynamic (balance oscillating).
+  // Balanças analíticas de laboratório transmitem em gramas, nunca em kg.
   balanca: {
-    description: "Balança analítica — ex: '  1.2345 kg'",
-    exampleRegex: "(\\d+\\.\\d+)\\s*kg",
+    description: "Balança analítica Mettler Toledo MT-SICS — ex: 'S S     0.1234 g'",
+    exampleRegex: "(\\d+\\.\\d+)\\s*g\\b",
     generate() {
-      return `  ${rand(0.001, 50, 4).toFixed(4)} kg\r\n`;
+      const stability = Math.random() > 0.1 ? "S" : "D";
+      const value = rand(0.0001, 220, 4).toFixed(4).padStart(9);
+      return `S ${stability}    ${value} g  \r\n`;
     }
   },
 
+  // Mettler Toledo SevenEasy / Hanna Instruments modo compact printer.
   ph: {
-    description: "pH-metro — ex: 'pH  7.23'",
+    description: "pH-metro Mettler/Hanna (compact mode) — ex: 'pH  7.23'",
     exampleRegex: "pH\\s*(\\d+\\.\\d+)",
     generate() {
       return `pH  ${rand(0, 14, 2).toFixed(2)}\r\n`;
     }
   },
 
+  // Brookfield DV-II+ modo CGS (padrão de fábrica): unidade cP (centipoise).
+  // 1 cP = 1 mPa·s numericamente, mas Brookfield usa cP no output padrão.
   viscosimetro: {
-    description: "Viscosímetro — ex: '125.3 mPa.s'",
-    exampleRegex: "(\\d+\\.\\d+)\\s*mPa",
+    description: "Viscosímetro Brookfield (simplificado) — ex: '125.3 cP'",
+    exampleRegex: "(\\d+\\.\\d+)\\s*cP",
     generate() {
-      return `${rand(1, 5000, 1).toFixed(1)} mPa.s\r\n`;
+      return `${rand(1, 50000, 1).toFixed(1)} cP\r\n`;
     }
   },
 
-  espectrofotometro: {
-    description: "Espectrofotômetro — ex: 'ABS:0.523'",
-    exampleRegex: "ABS[:\\s]*(\\d+\\.\\d+)",
+  // Linha completa do protocolo serial Brookfield DV-II+Pro.
+  // Regex extrai o campo cP= da linha composta por múltiplos parâmetros.
+  "viscosimetro-brookfield": {
+    description: "Viscosímetro Brookfield DV-II+ (linha completa) — ex: 'RPM=  6.0 ... cP=  226.0 ...'",
+    exampleRegex: "cP=\\s*(\\d+\\.\\d+)",
     generate() {
-      return `ABS:${rand(0, 3, 3).toFixed(3)}\r\n`;
+      const rpm = rand(0.3, 100, 1);
+      const models = ["LV", "RV", "HA", "HB"] as const;
+      const model = models[Math.floor(Math.random() * models.length)];
+      const sp = String(Math.floor(Math.random() * 7) + 1).padStart(2, "0");
+      const torque = rand(5, 99, 1);
+      const cp = rand(10, 50000, 1);
+      const shearRate = parseFloat((rpm * 1.7).toFixed(3));
+      const shearStress = parseFloat((cp * shearRate / 10000).toFixed(2));
+      const temp = rand(20, 35, 1);
+      return (
+        `RPM=${rpm.toFixed(1).padStart(5)} M=${model} S=${sp}` +
+        ` %=${torque.toFixed(1).padStart(5)} cP=${cp.toFixed(1).padStart(8)}` +
+        ` D/CM2=${shearStress.toFixed(2).padStart(7)} 1/SEC=${shearRate.toFixed(3).padStart(7)}` +
+        ` T=${temp.toFixed(1)}C\r\n`
+      );
+    }
+  },
+
+  // Cecil CE / Thermo Spectronic: formato documentado com "Abs=" como label.
+  // Regex cobre variantes: Abs=, Abs:, ABS= (primeira letra maiúscula ou toda caixa).
+  espectrofotometro: {
+    description: "Espectrofotômetro Cecil/Thermo — ex: 'Abs=0.523'",
+    exampleRegex: "[Aa]bs[=:]\\s*(\\d+\\.\\d+)",
+    generate() {
+      return `Abs=${rand(0, 2, 3).toFixed(3)}\r\n`;
     }
   },
 
