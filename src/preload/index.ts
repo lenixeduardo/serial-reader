@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from "electron";
+import { contextBridge, ipcRenderer, type IpcRendererEvent } from "electron";
 import {
   IPC,
   type AppSettings,
@@ -20,6 +20,12 @@ import {
   type UserCreateInput
 } from "../shared/ipc";
 import type { Equipment, Formula, User } from "../shared/types";
+
+function subscribe<T>(channel: string, cb: (data: T) => void): Unsubscribe {
+  const listener = (_e: IpcRendererEvent, data: T) => cb(data);
+  ipcRenderer.on(channel, listener);
+  return () => ipcRenderer.removeListener(channel, listener);
+}
 
 const api: SerialReaderApi = {
   auth: {
@@ -77,21 +83,9 @@ const api: SerialReaderApi = {
       ipcRenderer.invoke(IPC.captureStart, batchId),
     cancel: (): Promise<ServiceResult<true>> => ipcRenderer.invoke(IPC.captureCancel),
     isActive: (): Promise<boolean> => ipcRenderer.invoke(IPC.captureIsActive),
-    onTick: (cb: (e: CaptureTickEvent) => void): Unsubscribe => {
-      const handler = (_e: Electron.IpcRendererEvent, data: CaptureTickEvent) => cb(data);
-      ipcRenderer.on(IPC.captureTick, handler);
-      return () => ipcRenderer.removeListener(IPC.captureTick, handler);
-    },
-    onSlotUpdate: (cb: (e: SlotUpdateEvent) => void): Unsubscribe => {
-      const handler = (_e: Electron.IpcRendererEvent, data: SlotUpdateEvent) => cb(data);
-      ipcRenderer.on(IPC.captureSlotUpdate, handler);
-      return () => ipcRenderer.removeListener(IPC.captureSlotUpdate, handler);
-    },
-    onEnded: (cb: (e: CaptureEndedEvent) => void): Unsubscribe => {
-      const handler = (_e: Electron.IpcRendererEvent, data: CaptureEndedEvent) => cb(data);
-      ipcRenderer.on(IPC.captureEnded, handler);
-      return () => ipcRenderer.removeListener(IPC.captureEnded, handler);
-    }
+    onTick: (cb) => subscribe<CaptureTickEvent>(IPC.captureTick, cb),
+    onSlotUpdate: (cb) => subscribe<SlotUpdateEvent>(IPC.captureSlotUpdate, cb),
+    onEnded: (cb) => subscribe<CaptureEndedEvent>(IPC.captureEnded, cb)
   }
 };
 
