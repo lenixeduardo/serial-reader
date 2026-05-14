@@ -16,7 +16,10 @@
     "start": "electron .",
     "package": "npm run build && electron-builder",
     "rebuild": "electron-rebuild -f -w better-sqlite3,serialport",
-    "typecheck": "tsc -p tsconfig.main.json --noEmit && tsc -p tsconfig.renderer.json --noEmit"
+    "typecheck": "tsc -p tsconfig.main.json --noEmit && tsc -p tsconfig.renderer.json --noEmit",
+    "sim:build": "tsc -p tsconfig.tools.json",
+    "sim": "npm run sim:build && node dist/tools/serial-sim.js",
+    "sim:test": "npm run sim:build && node dist/tools/sim-test.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
