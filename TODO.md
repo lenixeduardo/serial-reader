@@ -67,11 +67,11 @@
 - [ ] Filtro por data/equipamento
 - [ ] Commit + push
 
-## Fase 6 — Simulador serial
-- [ ] Script `tools/serial-sim.ts` que abre uma porta virtual e envia strings
-- [ ] Documentar no README como usar `com0com` (Windows) e `socat` (Linux)
-- [ ] Presets de payload por tipo de equipamento (balança, pH, etc.)
-- [ ] Commit + push
+## Fase 6 — Simulador serial ✅
+- [x] Script `tools/serial-sim.ts` que abre uma porta virtual e envia strings
+- [x] Documentar no README como usar `com0com` (Windows) e `socat` (Linux)
+- [x] Presets de payload por tipo de equipamento (balança, pH, etc.)
+- [x] Commit + push
 
 ## Fase 7 — Empacotamento
 - [ ] Ícone do app (`build/icon.ico`)
