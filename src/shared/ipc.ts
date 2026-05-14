@@ -19,7 +19,13 @@ export const IPC = {
   usersCreate: "users:create",
   usersChangePassword: "users:change-password",
   usersDelete: "users:delete",
-  serialListPorts: "serial:list-ports"
+  serialListPorts: "serial:list-ports",
+  captureStart: "capture:start",
+  captureCancel: "capture:cancel",
+  captureIsActive: "capture:is-active",
+  captureTickEvent: "capture:tick",
+  captureSlotUpdateEvent: "capture:slot-update",
+  captureEndedEvent: "capture:ended"
 } as const;
 
 export interface LoginRequest {
@@ -74,7 +80,45 @@ export interface EquipmentUpdateInput {
 
 export type AppSettings = Record<string, string>;
 
+export type SlotStatus = "open" | "receiving" | "error";
+
+export interface SlotInitState {
+  equipmentId: number;
+  name: string;
+  slotIndex: number;
+  portPath: string;
+  status: SlotStatus;
+  error?: string;
+}
+
+export interface CaptureStartData {
+  sessionId: number;
+  batchId: number;
+  timeoutSeconds: number;
+  slots: SlotInitState[];
+}
+
+export interface CaptureTickEvent {
+  remainingSeconds: number;
+}
+
+export interface SlotUpdateEvent {
+  equipmentId: number;
+  status: SlotStatus;
+  valueRaw?: string;
+  valueParsed?: string | null;
+  capturedAt?: string;
+  error?: string;
+}
+
+export interface CaptureEndedEvent {
+  sessionId: number;
+  reason: "timeout" | "cancelled" | "completed";
+}
+
 export type ServiceResult<T> = { ok: true; data: T } | { ok: false; error: string };
+
+export type Unsubscribe = () => void;
 
 export interface SerialReaderApi {
   auth: {
@@ -109,6 +153,14 @@ export interface SerialReaderApi {
   };
   serial: {
     listPorts(): Promise<SerialPortInfo[]>;
+  };
+  capture: {
+    start(batchId: number): Promise<ServiceResult<CaptureStartData>>;
+    cancel(): Promise<ServiceResult<true>>;
+    isActive(): Promise<boolean>;
+    onTick(cb: (e: CaptureTickEvent) => void): Unsubscribe;
+    onSlotUpdate(cb: (e: SlotUpdateEvent) => void): Unsubscribe;
+    onEnded(cb: (e: CaptureEndedEvent) => void): Unsubscribe;
   };
 }
 
