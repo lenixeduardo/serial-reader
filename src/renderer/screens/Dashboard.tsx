@@ -2,11 +2,13 @@ import React, { useEffect, useState } from "react";
 import type { Formula } from "../../shared/types";
 import type { BatchWithFormula } from "../../shared/ipc";
 import { Modal } from "../components/Modal";
+import { CaptureModal } from "../components/CaptureModal";
 
 export function Dashboard() {
   const [batches, setBatches] = useState<BatchWithFormula[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewBatch, setShowNewBatch] = useState(false);
+  const [captureBatchId, setCaptureBatchId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function reload() {
@@ -31,6 +33,16 @@ export function Dashboard() {
     reload();
   }
 
+  async function handleStartCapture(b: BatchWithFormula) {
+    const already = await window.api.capture.isActive();
+    if (already) {
+      setError("Já existe uma captura em andamento. Cancele antes de iniciar outra.");
+      return;
+    }
+    setError(null);
+    setCaptureBatchId(b.id);
+  }
+
   return (
     <>
       <div className="page-actions">
@@ -47,7 +59,12 @@ export function Dashboard() {
       ) : (
         <div className="batch-grid">
           {batches.map((b) => (
-            <BatchCard key={b.id} batch={b} onClose={() => handleClose(b)} />
+            <BatchCard
+              key={b.id}
+              batch={b}
+              onClose={() => handleClose(b)}
+              onStartCapture={() => handleStartCapture(b)}
+            />
           ))}
         </div>
       )}
@@ -62,11 +79,30 @@ export function Dashboard() {
           }}
         />
       )}
+
+      {captureBatchId !== null && (
+        <CaptureModal
+          batchId={captureBatchId}
+          onClose={() => {
+            setCaptureBatchId(null);
+            reload();
+          }}
+          onEnded={reload}
+        />
+      )}
     </>
   );
 }
 
-function BatchCard({ batch, onClose }: { batch: BatchWithFormula; onClose: () => void }) {
+function BatchCard({
+  batch,
+  onClose,
+  onStartCapture
+}: {
+  batch: BatchWithFormula;
+  onClose: () => void;
+  onStartCapture: () => void;
+}) {
   return (
     <div className="batch-card">
       <div className="batch-card-head">
@@ -82,9 +118,7 @@ function BatchCard({ batch, onClose }: { batch: BatchWithFormula; onClose: () =>
         <div><span>Operador</span><strong>{batch.operatorName}</strong></div>
       </div>
       <div className="batch-actions">
-        <button onClick={() => alert("Captura serial será implementada na Fase 4.")}>
-          ▶ Iniciar Leitura
-        </button>
+        <button onClick={onStartCapture}>▶ Iniciar Leitura</button>
         <button className="secondary" onClick={onClose}>Finalizar Lote</button>
       </div>
     </div>

@@ -5,6 +5,7 @@ import { runMigrations } from "./db/migrate";
 import { seedInitialData } from "./db/seed";
 import { registerAuthHandlers } from "./ipc/auth-handlers";
 import { registerBatchesHandlers } from "./ipc/batches-handlers";
+import { registerCaptureHandlers } from "./ipc/capture-handlers";
 import { registerEquipmentsHandlers } from "./ipc/equipments-handlers";
 import { registerFormulasHandlers } from "./ipc/formulas-handlers";
 import { registerSettingsHandlers } from "./ipc/settings-handlers";
@@ -41,6 +42,7 @@ app.whenReady().then(() => {
   registerSettingsHandlers();
   registerEquipmentsHandlers();
   registerUsersHandlers();
+  registerCaptureHandlers();
   createWindow();
 });
 

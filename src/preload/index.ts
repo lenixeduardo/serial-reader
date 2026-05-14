@@ -4,6 +4,9 @@ import {
   type AppSettings,
   type BatchInput,
   type BatchWithFormula,
+  type CaptureEndedEvent,
+  type CaptureStartResult,
+  type CaptureTickEvent,
   type EquipmentUpdateInput,
   type FormulaInput,
   type LoginRequest,
@@ -11,6 +14,8 @@ import {
   type SerialPortInfo,
   type SerialReaderApi,
   type ServiceResult,
+  type SlotUpdateEvent,
+  type Unsubscribe,
   type UserCreateInput
 } from "../shared/ipc";
 import type { Equipment, Formula, User } from "../shared/types";
@@ -58,6 +63,27 @@ const api: SerialReaderApi = {
   },
   serial: {
     listPorts: (): Promise<SerialPortInfo[]> => ipcRenderer.invoke(IPC.serialListPorts)
+  },
+  capture: {
+    start: (batchId: number): Promise<ServiceResult<CaptureStartResult>> =>
+      ipcRenderer.invoke(IPC.captureStart, batchId),
+    cancel: (): Promise<ServiceResult<true>> => ipcRenderer.invoke(IPC.captureCancel),
+    isActive: (): Promise<boolean> => ipcRenderer.invoke(IPC.captureIsActive),
+    onTick: (cb: (e: CaptureTickEvent) => void): Unsubscribe => {
+      const handler = (_e: Electron.IpcRendererEvent, data: CaptureTickEvent) => cb(data);
+      ipcRenderer.on(IPC.captureTick, handler);
+      return () => ipcRenderer.removeListener(IPC.captureTick, handler);
+    },
+    onSlotUpdate: (cb: (e: SlotUpdateEvent) => void): Unsubscribe => {
+      const handler = (_e: Electron.IpcRendererEvent, data: SlotUpdateEvent) => cb(data);
+      ipcRenderer.on(IPC.captureSlotUpdate, handler);
+      return () => ipcRenderer.removeListener(IPC.captureSlotUpdate, handler);
+    },
+    onEnded: (cb: (e: CaptureEndedEvent) => void): Unsubscribe => {
+      const handler = (_e: Electron.IpcRendererEvent, data: CaptureEndedEvent) => cb(data);
+      ipcRenderer.on(IPC.captureEnded, handler);
+      return () => ipcRenderer.removeListener(IPC.captureEnded, handler);
+    }
   }
 };
 
