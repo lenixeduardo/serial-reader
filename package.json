@@ -7,11 +7,10 @@
   "license": "UNLICENSED",
   "private": true,
   "scripts": {
-    "dev": "concurrently -k -n MAIN,RENDERER -c blue,green \"npm:dev:main\" \"npm:dev:renderer\"",
+    "dev": "npm run build:main && concurrently -k -n MAIN,RENDERER,ELECTRON -c blue,green,yellow \"npm:dev:main\" \"npm:dev:renderer\" \"npm:dev:electron\"",
     "dev:main": "tsc -p tsconfig.main.json --watch",
     "dev:renderer": "vite",
-    "electron": "cross-env ELECTRON_DEV=1 electron . --no-sandbox",
-    "dev:electron": "npm run build:main && cross-env ELECTRON_DEV=1 electron . --no-sandbox",
+    "dev:electron": "wait-on http://localhost:5173 && cross-env ELECTRON_DEV=1 electron . --no-sandbox",
     "build": "npm run build:renderer && npm run build:main",
     "build:main": "tsc -p tsconfig.main.json",
     "build:renderer": "vite build",
@@ -48,7 +47,8 @@
     "electron": "^32.1.2",
     "electron-builder": "^25.0.5",
     "typescript": "^5.6.2",
-    "vite": "^5.4.8"
+    "vite": "^5.4.8",
+    "wait-on": "^9.0.10"
   },
   "build": {
     "appId": "com.serialreader.app",
