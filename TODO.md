@@ -73,12 +73,13 @@
 - [x] Presets de payload por tipo de equipamento (balança, pH, etc.)
 - [x] Commit + push
 
-## Fase 7 — Empacotamento
-- [ ] Ícone do app (`build/icon.ico`)
-- [ ] `electron-builder` config final (NSIS, autoupdate opcional)
-- [ ] Smoke test do `.exe` gerado
+## Fase 7 — Empacotamento ✅
+- [x] Ícone do app (`build/icon.ico`)
+- [x] `electron-builder` config final (NSIS, asarUnpack para serialport, extraResources para sql-wasm.wasm)
+- [x] `locateFile` no sql.js para encontrar WASM no app empacotado
+- [ ] Smoke test do `.exe` gerado (requer Windows)
 - [ ] Documentar processo de release no README
-- [ ] Commit + push
+- [x] Commit + push
 
 ## Backlog / Ideias
 - [ ] Auto-update via `electron-updater`

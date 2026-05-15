@@ -11,7 +11,14 @@ async function initSqlJs(): Promise<SqlJsStatic> {
   if (SQL) return SQL;
   const sqlJsModule = await import("sql.js");
   const initSqlJsFn = (sqlJsModule as any).default ?? sqlJsModule;
-  SQL = await (initSqlJsFn as any)();
+  SQL = await (initSqlJsFn as any)({
+    locateFile: (file: string) => {
+      if (app.isPackaged) {
+        return join(process.resourcesPath, file);
+      }
+      return join(__dirname, "..", "..", "..", "node_modules", "sql.js", "dist", file);
+    }
+  });
   return SQL!;
 }
 

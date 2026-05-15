@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Desktop app para leitura de equipamentos via porta serial, vinculada a receitas e lotes.",
   "main": "dist/main/main/index.js",
-  "author": "",
+  "author": "Serial Reader",
   "license": "UNLICENSED",
   "private": true,
   "scripts": {
@@ -51,15 +51,46 @@
   "build": {
     "appId": "com.serialreader.app",
     "productName": "Serial Reader",
+    "copyright": "Copyright © 2025 Serial Reader",
+    "icon": "build/icon.ico",
     "files": [
       "dist/**/*",
       "package.json"
+    ],
+    "asarUnpack": [
+      "**/node_modules/serialport/**/*",
+      "**/node_modules/@serialport/**/*",
+      "**/node_modules/bindings/**/*",
+      "**/node_modules/node-gyp-build/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "node_modules/sql.js/dist/sql-wasm.wasm",
+        "to": "sql-wasm.wasm"
+      }
     ],
     "directories": {
       "output": "release"
     },
     "win": {
-      "target": "nsis"
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Serial Reader",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico"
     }
   }
 }
