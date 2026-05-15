@@ -1,4 +1,4 @@
-import { getDb } from "./connection";
+import { all } from "./query";
 import type { BatchHistory, CaptureSessionRecord, ReadingRecord } from "../../shared/ipc";
 import { getBatchWithFormula } from "./batches-repo";
 
@@ -21,28 +21,27 @@ export function getBatchHistory(batchId: number): BatchHistory | null {
   const batch = getBatchWithFormula(batchId);
   if (!batch) return null;
 
-  const rows = getDb()
-    .prepare(
-      `SELECT
-         cs.id              AS session_id,
-         cs.started_at      AS session_started_at,
-         cs.ended_at        AS session_ended_at,
-         cs.timeout_seconds AS session_timeout_seconds,
-         cs.status          AS session_status,
-         r.id               AS reading_id,
-         r.value_raw,
-         r.value_parsed,
-         r.captured_at,
-         e.id               AS equipment_id,
-         e.name             AS equipment_name,
-         e.slot_index
-       FROM capture_sessions cs
-       LEFT JOIN readings r ON r.capture_session_id = cs.id
-       LEFT JOIN equipments e ON e.id = r.equipment_id
-       WHERE cs.batch_id = ?
-       ORDER BY cs.started_at ASC, r.captured_at ASC`
-    )
-    .all(batchId) as SessionReadingRow[];
+  const rows = all<SessionReadingRow>(
+    `SELECT
+       cs.id              AS session_id,
+       cs.started_at      AS session_started_at,
+       cs.ended_at        AS session_ended_at,
+       cs.timeout_seconds AS session_timeout_seconds,
+       cs.status          AS session_status,
+       r.id               AS reading_id,
+       r.value_raw,
+       r.value_parsed,
+       r.captured_at,
+       e.id               AS equipment_id,
+       e.name             AS equipment_name,
+       e.slot_index
+     FROM capture_sessions cs
+     LEFT JOIN readings r ON r.capture_session_id = cs.id
+     LEFT JOIN equipments e ON e.id = r.equipment_id
+     WHERE cs.batch_id = ?
+     ORDER BY cs.started_at ASC, r.captured_at ASC`,
+    batchId
+  );
 
   const sessionsMap = new Map<number, CaptureSessionRecord>();
 
@@ -72,26 +71,14 @@ export function getBatchHistory(batchId: number): BatchHistory | null {
     }
   }
 
-  return {
-    batch,
-    sessions: Array.from(sessionsMap.values())
-  };
+  return { batch, sessions: Array.from(sessionsMap.values()) };
 }
 
 export function buildCsvContent(history: BatchHistory): string {
   const lines: string[] = [];
   const header = [
-    "Lote",
-    "Fórmula",
-    "Sessão",
-    "Início Sessão",
-    "Fim Sessão",
-    "Status Sessão",
-    "Equipamento",
-    "Slot",
-    "Valor Bruto",
-    "Valor Parseado",
-    "Capturado em"
+    "Lote", "Fórmula", "Sessão", "Início Sessão", "Fim Sessão",
+    "Status Sessão", "Equipamento", "Slot", "Valor Bruto", "Valor Parseado", "Capturado em"
   ];
   lines.push(header.join(";"));
 
@@ -102,42 +89,18 @@ export function buildCsvContent(history: BatchHistory): string {
     sessionNum++;
     if (session.readings.length === 0) {
       lines.push(
-        [
-          batch.code,
-          batch.formulaName,
-          sessionNum,
-          session.startedAt,
-          session.endedAt ?? "",
-          session.status,
-          "",
-          "",
-          "",
-          "",
-          ""
-        ]
-          .map(csvCell)
-          .join(";")
+        [batch.code, batch.formulaName, sessionNum, session.startedAt,
+          session.endedAt ?? "", session.status, "", "", "", "", ""]
+          .map(csvCell).join(";")
       );
       continue;
     }
-
     for (const r of session.readings) {
       lines.push(
-        [
-          batch.code,
-          batch.formulaName,
-          sessionNum,
-          session.startedAt,
-          session.endedAt ?? "",
-          session.status,
-          r.equipmentName,
-          r.slotIndex + 1,
-          r.valueRaw,
-          r.valueParsed ?? "",
-          r.capturedAt
-        ]
-          .map(csvCell)
-          .join(";")
+        [batch.code, batch.formulaName, sessionNum, session.startedAt,
+          session.endedAt ?? "", session.status, r.equipmentName, r.slotIndex + 1,
+          r.valueRaw, r.valueParsed ?? "", r.capturedAt]
+          .map(csvCell).join(";")
       );
     }
   }
