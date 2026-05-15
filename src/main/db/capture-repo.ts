@@ -1,4 +1,4 @@
-import { getDb } from "./connection";
+import { get, run } from "./query";
 import type { CaptureSession, Reading } from "../../shared/types";
 
 interface SessionRow {
@@ -22,29 +22,17 @@ function rowToSession(r: SessionRow): CaptureSession {
 }
 
 export function createCaptureSession(batchId: number, timeoutSeconds: number): CaptureSession {
-  const db = getDb();
-  const result = db
-    .prepare(
-      "INSERT INTO capture_sessions (batch_id, timeout_seconds) VALUES (?, ?) RETURNING *"
-    )
-    .get(batchId, timeoutSeconds) as SessionRow;
-  return rowToSession(result);
+  const id = run("INSERT INTO capture_sessions (batch_id, timeout_seconds) VALUES (?, ?)", batchId, timeoutSeconds);
+  const row = get<SessionRow>("SELECT * FROM capture_sessions WHERE id = ?", id)!;
+  return rowToSession(row);
 }
 
 export function completeCaptureSession(id: number): void {
-  getDb()
-    .prepare(
-      "UPDATE capture_sessions SET status = 'completed', ended_at = datetime('now') WHERE id = ?"
-    )
-    .run(id);
+  run("UPDATE capture_sessions SET status = 'completed', ended_at = datetime('now') WHERE id = ?", id);
 }
 
 export function cancelCaptureSession(id: number): void {
-  getDb()
-    .prepare(
-      "UPDATE capture_sessions SET status = 'cancelled', ended_at = datetime('now') WHERE id = ?"
-    )
-    .run(id);
+  run("UPDATE capture_sessions SET status = 'cancelled', ended_at = datetime('now') WHERE id = ?", id);
 }
 
 export interface InsertReadingParams {
@@ -56,35 +44,31 @@ export interface InsertReadingParams {
 }
 
 export function insertReading(params: InsertReadingParams): Reading {
-  const db = getDb();
-  const result = db
-    .prepare(
-      `INSERT INTO readings
-        (batch_id, equipment_id, value_raw, value_parsed, capture_session_id)
-       VALUES (?, ?, ?, ?, ?) RETURNING *`
-    )
-    .get(
-      params.batchId,
-      params.equipmentId,
-      params.valueRaw,
-      params.valueParsed,
-      params.captureSessionId
-    ) as {
-      id: number;
-      batch_id: number;
-      equipment_id: number;
-      value_raw: string;
-      value_parsed: string | null;
-      captured_at: string;
-      capture_session_id: number;
-    };
+  const id = run(
+    `INSERT INTO readings (batch_id, equipment_id, value_raw, value_parsed, capture_session_id)
+     VALUES (?, ?, ?, ?, ?)`,
+    params.batchId,
+    params.equipmentId,
+    params.valueRaw,
+    params.valueParsed,
+    params.captureSessionId
+  );
+  const row = get<{
+    id: number;
+    batch_id: number;
+    equipment_id: number;
+    value_raw: string;
+    value_parsed: string | null;
+    captured_at: string;
+    capture_session_id: number;
+  }>("SELECT * FROM readings WHERE id = ?", id)!;
   return {
-    id: result.id,
-    batchId: result.batch_id,
-    equipmentId: result.equipment_id,
-    valueRaw: result.value_raw,
-    valueParsed: result.value_parsed ?? undefined,
-    capturedAt: result.captured_at,
-    captureSessionId: result.capture_session_id
+    id: row.id,
+    batchId: row.batch_id,
+    equipmentId: row.equipment_id,
+    valueRaw: row.value_raw,
+    valueParsed: row.value_parsed ?? undefined,
+    capturedAt: row.captured_at,
+    captureSessionId: row.capture_session_id
   };
 }

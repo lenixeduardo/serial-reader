@@ -1,6 +1,6 @@
 import { app, BrowserWindow } from "electron";
 import { join } from "node:path";
-import { closeDb } from "./db/connection";
+import { closeDb, openDb, persistDb } from "./db/connection";
 import { runMigrations } from "./db/migrate";
 import { seedInitialData } from "./db/seed";
 import { registerAuthHandlers } from "./ipc/auth-handlers";
@@ -31,12 +31,14 @@ function createWindow() {
     win.webContents.openDevTools({ mode: "detach" });
   } else {
     win.loadFile(join(__dirname, "../../renderer/index.html"));
-  };
+  }
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  await openDb();
   runMigrations();
   seedInitialData();
+  persistDb();
   registerAuthHandlers();
   registerFormulasHandlers();
   registerBatchesHandlers();
